@@ -5,3 +5,5 @@
 	logallrefupdates = true
 	symlinks = false
 	ignorecase = true
+*.zip
+*.rar
