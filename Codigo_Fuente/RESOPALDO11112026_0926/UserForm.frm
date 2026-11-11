@@ -4,7 +4,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm
    ClientHeight    =   2505
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   8295
+   ClientWidth     =   3615
    OleObjectBlob   =   "UserForm.frx":0000
    StartUpPosition =   1  'Centrar en propietario
 End
@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 
 Private Sub UserForm_Initialize()

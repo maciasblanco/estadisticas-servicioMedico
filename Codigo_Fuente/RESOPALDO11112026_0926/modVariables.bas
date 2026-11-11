@@ -194,20 +194,20 @@ Public Function TienePermiso(ByVal accion As String) As Boolean
 End Function
 
 Public Sub InicializarSesion(ByVal usuario As String, ByVal nombre As String, ByVal rol As String)
-    gUsuarioActual  = UCase$(Trim$(usuario))
+    gUsuarioActual = UCase$(Trim$(usuario))
     gNombreCompleto = Trim$(nombre)
-    gRolUsuario     = UCase$(Trim$(rol))
-    gFechaLogin     = Now
-    gEquipoActual   = Environ$("COMPUTERNAME")
-    gSesionActiva   = True
+    gRolUsuario = UCase$(Trim$(rol))
+    gFechaLogin = Now
+    gEquipoActual = Environ$("COMPUTERNAME")
+    gSesionActiva = True
 End Sub
 
 Public Sub CerrarSesion()
-    gUsuarioActual  = vbNullString
+    gUsuarioActual = vbNullString
     gNombreCompleto = vbNullString
-    gRolUsuario     = vbNullString
-    gFechaLogin     = 0
-    gSesionActiva   = False
+    gRolUsuario = vbNullString
+    gFechaLogin = 0
+    gSesionActiva = False
 End Sub
 
 Public Sub RangoMes(ByVal anio As Integer, ByVal mes As Integer, _

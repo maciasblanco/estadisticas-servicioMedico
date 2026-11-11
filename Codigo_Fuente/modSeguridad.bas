@@ -4,6 +4,7 @@ Option Explicit
 ' -------------------------------------------------------------------
 '  MÓDULO: modSeguridad
 '  SHA-256, validación de login y bloqueo por intentos
+'  Versión blindada contra errores de desbordamiento en VBA
 ' -------------------------------------------------------------------
 
 Public Function GenerarHash(ByVal texto As String) As String
@@ -14,7 +15,7 @@ End Function
 
 Private Function SHA256_Hex(ByRef data() As Byte) As String
     Dim K(0 To 63) As Long
-    Dim h(0 To 7) As Long
+    Dim H_Hash(0 To 7) As Long
     Dim w(0 To 63) As Long
     Dim Kvals As Variant
     Kvals = Array( _
@@ -35,40 +36,27 @@ Private Function SHA256_Hex(ByRef data() As Byte) As String
         &H748F82EE, &H78A5636F, &H84C87814, &H8CC70208, _
         &H90BEFFFA, &HA4506CEB, &HBEF9A3F7, &HC67178F2)
     
-    Dim i As Long
-    Dim j As Long
-    Dim bloque As Long
-    Dim t As Long
-    Dim a As Long
-    Dim b As Long
-    Dim c As Long
-    Dim d As Long
-    Dim e As Long
-    Dim f As Long
-    Dim g As Long
-    Dim h As Long
-    Dim s0 As Long
-    Dim s1 As Long
-    Dim ch As Long
-    Dim maj As Long
-    Dim temp1 As Double
-    Dim temp2 As Double
-    Dim origLen As Long
-    Dim bitLen As Double
+    Dim i As Long, j As Long, bloque As Long, t As Long
+    Dim a As Long, b As Long, c As Long, d As Long
+    Dim e As Long, f As Long, g As Long, h As Long
+    Dim s0 As Long, s1 As Long, ch As Long, maj As Long
+    Dim temp1 As Double, temp2 As Double
+    Dim origLen As Long, bitLen As Double
     Dim lenBytes(0 To 7) As Byte
+    Dim suma As Double
     
     For i = 0 To 63
         K(i) = Kvals(i)
     Next
     
-    h(0) = &H6A09E667
-    h(1) = &HBB67AE85
-    h(2) = &H3C6EF372
-    h(3) = &HA54FF53A
-    h(4) = &H510E527F
-    h(5) = &H9B05688C
-    h(6) = &H1F83D9AB
-    h(7) = &H5BE0CD19
+    H_Hash(0) = &H6A09E667
+    H_Hash(1) = &HBB67AE85
+    H_Hash(2) = &H3C6EF372
+    H_Hash(3) = &HA54FF53A
+    H_Hash(4) = &H510E527F
+    H_Hash(5) = &H9B05688C
+    H_Hash(6) = &H1F83D9AB
+    H_Hash(7) = &H5BE0CD19
     
     origLen = UBound(data) + 1
     ReDim Preserve data(0 To (((origLen + 9) \ 64) + 1) * 64 - 1)
@@ -84,62 +72,66 @@ Private Function SHA256_Hex(ByRef data() As Byte) As String
     
     For bloque = 0 To UBound(data) Step 64
         For t = 0 To 15
-            w(t) = (CLng(data(bloque + t * 4)) And &HFF) * &H1000000 _
-                 + (CLng(data(bloque + t * 4 + 1)) And &HFF) * &H10000 _
-                 + (CLng(data(bloque + t * 4 + 2)) And &HFF) * &H100 _
-                 + (CLng(data(bloque + t * 4 + 3)) And &HFF)
+            suma = (CDbl(data(bloque + t * 4)) * 16777216#) + _
+                   (CDbl(data(bloque + t * 4 + 1)) * 65536#) + _
+                   (CDbl(data(bloque + t * 4 + 2)) * 256#) + _
+                   CDbl(data(bloque + t * 4 + 3))
+            If suma > 2147483647# Then suma = suma - 4294967296#
+            w(t) = CLng(suma)
         Next
+        
         For t = 16 To 63
             s0 = RShift(w(t - 15), 7) Xor RShift(w(t - 15), 18) Xor (w(t - 15) \ 3)
             s1 = RShift(w(t - 2), 17) Xor RShift(w(t - 2), 19) Xor (w(t - 2) \ 10)
-            w(t) = w(t - 16) + s0 + w(t - 7) + s1
+            
+            suma = CDbl(w(t - 16)) + CDbl(s0) + CDbl(w(t - 7)) + CDbl(s1)
+            suma = suma - Int(suma / 4294967296#) * 4294967296#
+            w(t) = CLng(suma)
             w(t) = w(t) And &HFFFFFFFF
         Next
         
-        a = h(0)
-        b = h(1)
-        c = h(2)
-        d = h(3)
-        e = h(4)
-        f = h(5)
-        g = h(6)
-        h = h(7)
+        a = H_Hash(0): b = H_Hash(1): c = H_Hash(2): d = H_Hash(3)
+        e = H_Hash(4): f = H_Hash(5): g = H_Hash(6): h = H_Hash(7)
         
         For t = 0 To 63
             s1 = RShift(e, 6) Xor RShift(e, 11) Xor RShift(e, 25)
             ch = (e And f) Xor ((Not e) And g)
-            temp1 = (CDbl(h) + s1 + ch + K(t) + w(t))
+            
+            temp1 = CDbl(h) + CDbl(s1) + CDbl(ch) + CDbl(K(t)) + CDbl(w(t))
             temp1 = temp1 - Int(temp1 / 4294967296#) * 4294967296#
+            
             s0 = RShift(a, 2) Xor RShift(a, 13) Xor RShift(a, 22)
             maj = (a And b) Xor (a And c) Xor (b And c)
-            temp2 = (CDbl(s0) + maj)
+            
+            temp2 = CDbl(s0) + CDbl(maj)
             temp2 = temp2 - Int(temp2 / 4294967296#) * 4294967296#
             
-            h = g
-            g = f
-            f = e
-            e = (d + temp1)
-            e = e - Int(e / 4294967296#) * 4294967296#
-            d = c
-            c = b
-            b = a
-            a = (temp1 + temp2)
-            a = a - Int(a / 4294967296#) * 4294967296#
+            h = g: g = f: f = e
+            
+            suma = CDbl(d) + temp1
+            suma = suma - Int(suma / 4294967296#) * 4294967296#
+            e = CLng(suma)
+            
+            d = c: c = b: b = a
+            
+            suma = temp1 + temp2
+            suma = suma - Int(suma / 4294967296#) * 4294967296#
+            a = CLng(suma)
         Next
         
-        h(0) = (h(0) + a) And &HFFFFFFFF
-        h(1) = (h(1) + b) And &HFFFFFFFF
-        h(2) = (h(2) + c) And &HFFFFFFFF
-        h(3) = (h(3) + d) And &HFFFFFFFF
-        h(4) = (h(4) + e) And &HFFFFFFFF
-        h(5) = (h(5) + f) And &HFFFFFFFF
-        h(6) = (h(6) + g) And &HFFFFFFFF
-        h(7) = (h(7) + h) And &HFFFFFFFF
+        suma = CDbl(H_Hash(0)) + CDbl(a): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(0) = CLng(suma)
+        suma = CDbl(H_Hash(1)) + CDbl(b): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(1) = CLng(suma)
+        suma = CDbl(H_Hash(2)) + CDbl(c): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(2) = CLng(suma)
+        suma = CDbl(H_Hash(3)) + CDbl(d): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(3) = CLng(suma)
+        suma = CDbl(H_Hash(4)) + CDbl(e): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(4) = CLng(suma)
+        suma = CDbl(H_Hash(5)) + CDbl(f): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(5) = CLng(suma)
+        suma = CDbl(H_Hash(6)) + CDbl(g): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(6) = CLng(suma)
+        suma = CDbl(H_Hash(7)) + CDbl(h): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(7) = CLng(suma)
     Next
     
     Dim s As String
     For i = 0 To 7
-        s = s & Right("00000000" & Hex(h(i)), 8)
+        s = s & Right("00000000" & Hex(H_Hash(i)), 8)
     Next
     SHA256_Hex = LCase(s)
 End Function
@@ -232,3 +224,4 @@ Public Function CambiarClave(ByVal usuario As String, ByVal claveNueva As String
         End If
     Next
 End Function
+
