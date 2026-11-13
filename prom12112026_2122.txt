@@ -1,0 +1,210 @@
+═══════════════════════════════════════════════════════════════════
+CONTEXTO DEL PROYECTO — Sistema de Gestión Médica v2.0.0
+═══════════════════════════════════════════════════════════════════
+
+Actúa como un experto desarrollador de VBA para Excel. Continuamos
+el proyecto "Sistema de Gestión Médica" (Versión 2.0.0) que ya está
+subido a GitHub en el repositorio "estadisticas-servicioMedico".
+
+REGLAS ESTRICTAS PARA TI (LA IA):
+1. NO des instaladores automáticos ni uses archivos .frm. Los
+   formularios se crean visualmente (Insertar > UserForm) y se les
+   asigna el código.
+2. Si vas a dar código de un módulo, dame el módulo COMPLETO
+   (desde Option Explicit hasta el final) para evitar errores de
+   variables duplicadas.
+3. Para los formularios, dame una tabla con el Nombre exacto de
+   cada control y el código completo del UserForm.
+4. Si modificas un módulo existente, dime exactamente qué líneas
+   reemplazar/agregar y en qué posición, para no romper lo que ya
+   compila.
+
+───────────────────────────────────────────────────────────────────
+ESTADO ACTUAL — MÓDULOS COMPLETADOS ✅
+───────────────────────────────────────────────────────────────────
+- modVariables        (constantes, utilidades, TienePermiso)
+- modSetup            (crea hojas Usuarios/Histórico/Config)
+- modSeguridad        (SHA-256 blindado contra Error 6, login,
+                       bloqueo por intentos)
+- modHistorico        (auditoría de acciones)
+- modCRUD             (Insert/Update/Delete/Buscar — sin Join(),
+                       blindado contra Error 9)
+- modInicio
+- modEstadisticas     (BÁSICO — pendiente FASE 8)
+- modUsuarios
+- modInstalador       (importa módulos desde Codigo_Fuente)
+
+ESTADO ACTUAL — FORMULARIOS COMPLETADOS ✅
+───────────────────────────────────────────────────────────────────
+- frmLogin
+- frmMenuPrincipal    (⚠️ btnEstadisticas_Click y btnHistorial_Click
+                       aún muestran "En Construcción")
+- frmCRUD             (⚠️ SIN botón Exportar todavía)
+- frmEstadisticas     (BÁSICO — sin filtros avanzados ni gráficos)
+- frmUsuarios
+
+NOTAS TÉCNICAS YA RESUELTAS:
+- modSeguridad: SHA-256 blindado contra "Error 6: Desbordamiento"
+  (se ajusta el signo antes de usar CLng).
+- modCRUD: se eliminó Join() y se reemplazó por bucle manual para
+  evitar "Error 9: Subíndice fuera de intervalo".
+- Hoja de datos: HOJA_DATOS = "DatosOriginales (2)"
+  Columnas: FECHA, NOMBRE, CEDULA, SEXO, EDAD, ATENCION,
+            MEDICO, CANT, PROCEDENCIA, DIAGNOSTICO
+- CARPETA_RESPALDO = "C:\SistemaMedico\Respaldos\"
+- CARPETA_EXPORT   = "C:\SistemaMedico\Exportaciones\"
+- TienePermiso: firma exacta es
+  Public Function TienePermiso(ByVal accion As String) As Boolean
+  Roles con permiso EXPORT: ADMIN y ESTADISTICA.
+
+───────────────────────────────────────────────────────────────────
+PROGRESO GLOBAL: ████████░░░░░░░░░░░░ 40%
+───────────────────────────────────────────────────────────────────
+✅ FASE 1-6  Base + CRUD + Seguridad      100%
+🔄 FASE 7   Exportación de Datos           60% (código entregado,
+                                            falta compilar y probar)
+⏸️ FASE 8   Estadísticas Avanzadas          0% (BLOQUEADA — falta
+                                            ver modEstadisticas y
+                                            frmEstadisticas actuales)
+⏸️ FASE 9   Respaldos de Seguridad          0%
+⏸️ FASE 10  Visor del Historial             0%
+⏸️ FASE 11  Configuración y Toques Finales  0%
+
+───────────────────────────────────────────────────────────────────
+DETALLE DE LO QUE FALTA POR HACER
+───────────────────────────────────────────────────────────────────
+
+▶ FASE 7 — EXPORTACIÓN DE DATOS (en curso, ~60%):
+  ✅ Código de modExportacion.bas YA ENTREGADO (método nativo
+     ExportAsFixedFormat para PDF, sin dependencias externas).
+     Funciones incluidas:
+       - VerificarPermisoExport()
+       - AsegurarCarpeta(ruta)
+       - AbrirCarpeta(ruta)
+       - GenerarNombreArchivo(prefijo, extension)
+       - SeleccionarRutaGuardar(filtro, nombreDefecto)
+       - ExportarRangoAExcel(rango, ruta, tituloHoja)
+       - ExportarHojaAExcel(nombreHoja, ruta)
+       - ExportarRangoAPDF(rango, ruta, tituloReporte)
+       - ExportarHojaAPDF(nombreHoja, ruta, titulo)
+       - ExportarDatosOriginales(ruta, formato)
+       - ExportarResultadosBusqueda(ruta, textoBusqueda)
+  ✅ Handlers de frmCRUD (cmdExportar) YA ENTREGADOS
+  ✅ Handlers de frmEstadisticas (cmdExportarExcel, cmdExportarPDF)
+     YA ENTREGADOS
+  ✅ Fix bonus de frmMenuPrincipal.btnEstadisticas_Click YA ENTREGADO
+  ⏳ PENDIENTE: que el usuario compile y reporte errores.
+  ⏳ PENDIENTE: verificar que TienePermiso("EXPORT") bloquea a
+     MEDICO y CONSULTA.
+  ⏳ PENDIENTE: verificar que se cree la carpeta
+     C:\SistemaMedico\Exportaciones\ automáticamente.
+
+▶ FASE 8 — ESTADÍSTICAS AVANZADAS (BLOQUEADA):
+  ⏳ Necesito que el usuario comparta:
+      1. modEstadisticas.bas COMPLETO (actual)
+      2. frmEstadisticas.frm COMPLETO (actual)
+  ⏳ Implementar "Rango Específico" (PER_RANGO ya existe en
+     modVariables) con txtFechaDesde / txtFechaHasta (TextBox con
+     validación IsDate — sin DTPicker para evitar dependencias).
+  ⏳ Filtros cruzados (Año + Mes + Médico + Diagnóstico + Sexo
+     aplicados simultáneamente en AND).
+  ⏳ Tabla cruzada (pivote) en ListBox (ej: Filas=Médico,
+     Columnas=Mes, Celdas=Conteo).
+  ⏳ Gráficos dinámicos: se decidirá con el usuario entre
+     (A) imagen en el UserForm, (B) hoja temporal de Excel, o
+     (C) ambos. Recomendación actual: opción B para FASE 8.
+  ⏳ Exportación del RESULTADO FILTRADO (no de la hoja completa).
+
+▶ FASE 9 — RESPALDOS DE SEGURIDAD (no iniciada):
+  ⏳ modRespaldos.bas:
+       - CrearRespaldo()  → copia .xlsm a CARPETA_RESPALDO con
+                            timestamp
+       - ListarRespaldos() → matriz con nombre/fecha/tamaño
+       - RestaurarRespaldo(ruta) → confirmación + cierre archivo
+       - LimpiarRespaldosAntiguos(dias) → rotación > N días
+       - Validación TienePermiso("RESPALDO") solo ADMIN
+  ⏳ frmRespaldos.frm:
+       - ListBox con respaldos disponibles
+       - Botón Crear respaldo ahora
+       - Botón Restaurar seleccionado
+       - Botón Abrir carpeta
+       - Label con ruta y espacio disponible
+  ⏳ Handler en frmMenuPrincipal (nuevo btnRespaldos).
+
+▶ FASE 10 — VISOR DEL HISTORIAL (no iniciada):
+  ⏳ Extensión de modHistorico:
+       - LeerHistorico(filtros...) → matriz filtrada
+       - ContarHistoricos(...) → para paginación
+  ⏳ frmHistorico.frm:
+       - Filtros: Fecha desde/hasta, Usuario, Acción, Hoja
+       - ListBox con columnas (Fecha, Usuario, Acción, Hoja, Detalle)
+       - Doble clic en fila → MsgBox con detalle completo
+       - Botón Exportar historial (reusa modExportacion)
+       - Botón Actualizar
+  ⏳ Handler en frmMenuPrincipal (reemplazar btnHistorial_Click).
+
+▶ FASE 11 — CONFIGURACIÓN Y TOQUES FINALES (no iniciada):
+  ⏳ frmConfiguracion.frm:
+       - Editar MAX_INTENTOS, MIN_LONG_CLAVE
+       - Cambiar rutas CARPETA_RESPALDO / CARPETA_EXPORT
+       - Ver versión del sistema
+       - Solo ADMIN
+  ⏳ Ocultar Excel al iniciar (Application.Visible = False en
+     Workbook_Open).
+  ⏳ Proteger proyecto VBA con contraseña (manual).
+  ⏳ Proteger hojas con contraseña.
+  ⏳ Backup automático al cerrar (Workbook_BeforeClose).
+  ⏳ Workbook_Open → validar sesión + mostrar frmLogin.
+  ⏳ Workbook_BeforeClose → registrar logout + crear respaldo.
+  ⏳ Iconos/imágenes en formularios.
+  ⏳ Manual de usuario.
+
+───────────────────────────────────────────────────────────────────
+DEUDA TÉCNICA DETECTADA (a limpiar en algún momento)
+───────────────────────────────────────────────────────────────────
+1. modCRUD.bas tiene 'Option Explicit COMENTADO en línea 2
+   → activar para evitar variables no declaradas.
+2. modInstalador.bas importa "frmHistorico.frm" que aún no existe.
+3. CARPETA_RESPALDO y CARPETA_EXPORT son rutas ABSOLUTAS (C:\...)
+   → considerar cambiar a ruta relativa con ThisWorkbook.Path.
+4. frmMenuPrincipal tiene 3 botones con "En Construcción".
+5. frmCRUD Caption = "UserForm1" (cosmético).
+6. UserForm.frm parece ser el login con nombre genérico (cosmético).
+
+───────────────────────────────────────────────────────────────────
+INSTRUCCIÓN PARA TI (LA IA) EN ESTA NUEVA SESIÓN
+───────────────────────────────────────────────────────────────────
+Entiende todo este contexto. Mañana continuamos en la oficina.
+
+PASO 1: Pregúntame en qué estado quedó FASE 7:
+   a) ¿Compiló sin errores?
+   b) ¿Algún error específico al exportar Excel/PDF?
+   c) ¿El permiso EXPORT bloqueó correctamente a MEDICO/CONSULTA?
+
+PASO 2: Según mi respuesta:
+   - Si FASE 7 OK → pedirme modEstadisticas.bas y
+     frmEstadisticas.frm COMPLETOS y arrancar FASE 8.
+   - Si FASE 7 con errores → ayudarme a corregirlos primero.
+   - Si prefiero saltar → arrancar FASE 9 (Respaldos) o FASE 10
+     (Historial), que no dependen de estadísticas.
+
+PASO 3: Recordarme las 11 preguntas clave para FASE 8:
+   (1) código actual modEstadisticas
+   (2) código actual frmEstadisticas
+   (3) estructura real HOJA_DATOS (¿CANT siempre 1 o puede ser >1?
+       ¿FECHA es Date o Texto? ¿CEDULA con o sin guiones?)
+   (4) qué significa "filtros cruzados": A) combinados, B) tabla
+       pivote, C) drill-down
+   (5) qué gráficos necesito (barras, pastel, línea, apiladas...)
+   (6) gráficos en: A) UserForm, B) hoja Excel, C) ambos
+   (7) 1 gráfico por sesión o dashboard con 4-6
+   (8) UI de Rango Específico: TextBox / DTPicker / Combo
+       (recomendado: TextBox txtFechaDesde + txtFechaHasta)
+   (9) exportación: resultado filtrado o hoja completa
+   (10) hojas catálogo: columna 2 tiene valores, fila 1 encabezado
+   (11) CANT: suma o conteo
+
+NO des código hasta que yo confirme el estado de FASE 7 y te
+responda las preguntas de FASE 8 que apliquen.
+
+═══════════════════════════════════════════════════════════════════
