@@ -1,5 +1,5 @@
 Attribute VB_Name = "modCRUD"
-Option Explicit
+'Option Explicit
 
 ' -------------------------------------------------------------------
 '  MÓDULO: modCRUD (Fase 4)
@@ -64,12 +64,16 @@ Public Function InsertarRegistro(ByRef valores() As Variant) As Boolean
     Dim ws As Worksheet: Set ws = ThisWorkbook.Sheets(HOJA_DATOS)
     Dim fila As Long: fila = ws.Cells(ws.Rows.count, COL_CEDULA).End(xlUp).Row + 1
     Dim i As Long
+    Dim detalle As String
     
+    ' Escribir en Excel y armar el texto de auditoría
     For i = LBound(valores) To UBound(valores)
         ws.Cells(fila, i - LBound(valores) + 1).Value = valores(i)
+        detalle = detalle & CStr(valores(i)) & " | "
     Next i
     
-    RegistrarHistorico ACC_INSERT, HOJA_DATOS, fila, "REGISTRO COMPLETO", "", Join(valores, " | "), "Registro creado"
+    ' Guardar en historial usando el string armado manualmente (evita el error de Join)
+    RegistrarHistorico ACC_INSERT, HOJA_DATOS, fila, "REGISTRO COMPLETO", "", detalle, "Registro creado"
     InsertarRegistro = True
     Exit Function
 Errores:

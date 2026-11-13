@@ -35,8 +35,8 @@ Private Sub btnIngresar_Click()
     If ValidarLogin(usuarioLimpio, clave, mensaje) Then
         RegistrarHistorico ACC_LOGIN, "SISTEMA", "", "", "", "", "Ingreso al sistema"
         Unload Me
-        ' frmMenuPrincipal.Show ' <-- Esta línea la activaremos en la Fase 3
-        MsgBox "¡Login exitoso! Bienvenido " & gNombreCompleto, vbInformation, "Éxito"
+        ' Línea clave: Abre el menú principal
+        frmMenuPrincipal.Show
     Else
         RegistrarHistorico ACC_LOGIN_FALLO, "SISTEMA", "", "USUARIO", usuarioLimpio, "", mensaje
         MsgBox mensaje, vbCritical, "Error de acceso"

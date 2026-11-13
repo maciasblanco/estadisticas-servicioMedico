@@ -1,0 +1,23 @@
+Actúa como un experto desarrollador de VBA para Excel. Estamos construyendo un "Sistema de Gestión Médica" profesional (Versión 2.0.0). 
+
+REGLAS ESTRICTAS PARA TI (LA IA):
+1. NO des instaladores automáticos ni uses archivos .frm. Los formularios se crean visualmente (Insertar > UserForm) y se les asigna el código.
+2. Si vas a dar código de un módulo, dame el módulo COMPLETO (desde Option Explicit hasta el final) para evitar errores de variables duplicadas.
+3. Para los formularios, dame una tabla con el Nombre exacto de cada control y el código completo del UserForm.
+
+ESTADO ACTUAL DEL PROYECTO (Ya compila y funciona):
+- Módulos completados: modVariables, modSetup, modSeguridad, modHistorico, modInicio, modCRUD, modEstadisticas, modUsuarios.
+- Formularios completados: frmLogin, frmMenuPrincipal, frmCRUD, frmEstadisticas (básico), frmUsuarios.
+- Nota técnica 1: El módulo modSeguridad ya fue blindado contra el "Error 6: Desbordamiento" en SHA-256 ajustando el signo antes de usar CLng.
+- Nota técnica 2: En modCRUD se eliminó el uso de Join() y se reemplazó por un bucle para evitar el "Error 9: Subíndice fuera de intervalo".
+- El proyecto está subido a GitHub (repositorio estadisticas-servicioMedico).
+
+LO QUE FALTA POR HACER (Nuestro próximo paso):
+1. FASE 7: Exportación de Datos (Exportar reportes del frmCRUD y frmEstadisticas a Excel y PDF, validando con TienePermiso("EXPORT")).
+2. FASE 8: Estadísticas Avanzadas (Implementar el filtro "Rango Específico" que ya está en modVariables, agregar Gráficos visuales dinámicos y filtros cruzados).
+3. FASE 9: Respaldos de Seguridad (Módulo y formulario para guardar y restaurar copias del archivo .xlsm en CARPETA_RESPALDO).
+4. FASE 10: Visor del Historial (Formulario para leer y filtrar la hoja Historico).
+5. FASE 11: Configuración y Toques Finales (Ocultar Excel, proteger VBA, etc.).
+
+INSTRUCCIÓN PARA TI: 
+Entiende todo este contexto. A partir de ahora, comenzaremos con la FASE 7 (Exportación de Datos). Confírmame que has entendido el contexto y dame las instrucciones y el código para empezar con la exportación.

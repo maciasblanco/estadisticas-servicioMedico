@@ -37,7 +37,7 @@ Private Sub CrearHojaUsuarios()
     Dim ws As Worksheet
     If ExisteHoja(HOJA_USUARIOS) Then Exit Sub
     
-    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
     ws.Name = HOJA_USUARIOS
     
     With ws
@@ -69,7 +69,7 @@ Private Sub CrearHojaHistorico()
     Dim ws As Worksheet
     If ExisteHoja(HOJA_HISTORICO) Then Exit Sub
     
-    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
     ws.Name = HOJA_HISTORICO
     
     With ws
@@ -95,7 +95,7 @@ Private Sub CrearHojaConfiguracion()
     Dim ws As Worksheet
     If ExisteHoja(HOJA_CONFIG) Then Exit Sub
     
-    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
     ws.Name = HOJA_CONFIG
     
     With ws

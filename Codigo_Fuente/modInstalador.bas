@@ -125,7 +125,7 @@ Private Sub CrearHojaSiNoExiste(ByVal nombre As String, ByVal encabezados As Var
     On Error GoTo 0
     
     If ws Is Nothing Then
-        Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+        Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
         ws.Name = nombre
         Dim i As Long
         For i = LBound(encabezados) To UBound(encabezados)
@@ -147,7 +147,7 @@ Private Sub CrearAdminPorDefecto()
     If ws Is Nothing Then Exit Sub
     
     ' Verificar si ya hay usuarios
-    If ws.Cells(ws.Rows.Count, 2).End(xlUp).Row >= 2 Then Exit Sub
+    If ws.Cells(ws.Rows.count, 2).End(xlUp).Row >= 2 Then Exit Sub
     
     ws.Cells(2, 1).Value = 1
     ws.Cells(2, 2).Value = "ADMIN"

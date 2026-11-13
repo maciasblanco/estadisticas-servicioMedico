@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmMenuPrincipal 
    Caption         =   "UserForm1"
-   ClientHeight    =   3120
+   ClientHeight    =   3480
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   4575
@@ -32,7 +32,7 @@ End Sub
 
 Private Sub btnDatos_Click()
     ' Esta línea abrirá el CRUD que crearemos en la Fase 4
-    frmCRUD.Show
+    frmCrud.Show
 End Sub
 
 Private Sub btnEstadisticas_Click()
