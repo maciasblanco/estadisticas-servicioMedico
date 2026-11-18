@@ -1,16 +1,16 @@
-Attribute VB_Name = "modEstadisticas"
-Attribute VB_Name = "modEstadisticas"
+'Attribute VB_Name = "modEstadisticas"
+'Attribute VB_Name = "modEstadisticas"
 Option Explicit
 
 ' -------------------------------------------------------------------
-'  MÓDULO: modEstadisticas (FASE 8)
+'  Mï¿½DULO: modEstadisticas (FASE 8)
 '  Genera el reporte matricial basado en la imagen del usuario
 ' -------------------------------------------------------------------
 
 Public Sub GenerarReporteEstadistico(ByVal fIni As Date, ByVal fFin As Date, ByVal tituloPeriodo As String)
     ' 1. Validar permisos
     If Not TienePermiso("ESTADISTICA") Then
-        MsgBox "No tiene permisos para generar estadísticas.", vbExclamation, "Acceso Denegado"
+        MsgBox "No tiene permisos para generar estadï¿½sticas.", vbExclamation, "Acceso Denegado"
         Exit Sub
     End If
 
@@ -36,7 +36,7 @@ Public Sub GenerarReporteEstadistico(ByVal fIni As Date, ByVal fFin As Date, ByV
     Dim wsDatos As Worksheet: Set wsDatos = ThisWorkbook.Sheets(HOJA_DATOS)
     Dim lastRow As Long: lastRow = wsDatos.Cells(wsDatos.Rows.count, COL_CEDULA).End(xlUp).Row
     
-    ' Diccionarios para contar de forma rápida
+    ' Diccionarios para contar de forma rï¿½pida
     Dim dictCat As Object, dictSist As Object, dictEcos As Object, dictMed As Object
     Set dictCat = CreateObject("Scripting.Dictionary")
     Set dictSist = CreateObject("Scripting.Dictionary")
@@ -52,19 +52,19 @@ Public Sub GenerarReporteEstadistico(ByVal fIni As Date, ByVal fFin As Date, ByV
             
             ' Filtrar por rango de fechas
             If fechaFila >= fIni And fechaFila <= fFin Then
-                cat = UCase(Trim(CStr(wsDatos.Cells(i, COL_PROCEDENCIA).Value))) ' Asumiendo que Categoría es Procedencia
+                cat = UCase(Trim(CStr(wsDatos.Cells(i, COL_PROCEDENCIA).Value))) ' Asumiendo que Categorï¿½a es Procedencia
                 sist = UCase(Trim(CStr(wsDatos.Cells(i, COL_DIAGNOSTICO).Value)))
                 med = UCase(Trim(CStr(wsDatos.Cells(i, COL_MEDICO).Value)))
                 cant = Val(wsDatos.Cells(i, COL_CANT).Value)
-                If cant = 0 Then cant = 1 ' Si está vacío, cuenta como 1
+                If cant = 0 Then cant = 1 ' Si estï¿½ vacï¿½o, cuenta como 1
                 
-                ' Sumar a Categoría
+                ' Sumar a Categorï¿½a
                 If cat <> "" Then dictCat(cat) = dictCat(cat) + cant
                 
-                ' Sumar a Sistema/Diagnóstico
+                ' Sumar a Sistema/Diagnï¿½stico
                 If sist <> "" Then dictSist(sist) = dictSist(sist) + cant
                 
-                ' Sumar a Médicos
+                ' Sumar a Mï¿½dicos
                 If med <> "" Then dictMed(med) = dictMed(med) + cant
             End If
         End If
@@ -76,18 +76,18 @@ Public Sub GenerarReporteEstadistico(ByVal fIni As Date, ByVal fFin As Date, ByV
     Application.Calculation = xlCalculationAutomatic
     Application.ScreenUpdating = True
     
-    MsgBox "Reporte generado exitosamente en la hoja: " & nombreHoja, vbInformation, "Éxito"
+    MsgBox "Reporte generado exitosamente en la hoja: " & nombreHoja, vbInformation, "ï¿½xito"
 End Sub
 
 ' -------------------------------------------------------------------
-' Función que dibuja la tabla con el formato de la imagen
+' Funciï¿½n que dibuja la tabla con el formato de la imagen
 ' -------------------------------------------------------------------
 Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Object, dictMed As Object, titulo As String)
     Dim fila As Long: fila = 1
     Dim col As Long
     
-    ' --- TÍTULO PRINCIPAL ---
-    ws.Cells(fila, 1).Value = "ESTADÍSTICAS DEL SERVICIO MÉDICO " & UCase(titulo)
+    ' --- Tï¿½TULO PRINCIPAL ---
+    ws.Cells(fila, 1).Value = "ESTADï¿½STICAS DEL SERVICIO Mï¿½DICO " & UCase(titulo)
     ws.Range(ws.Cells(fila, 1), ws.Cells(fila, 3)).Merge
     ws.Cells(fila, 1).Font.Size = 14
     ws.Cells(fila, 1).Font.Bold = True
@@ -95,7 +95,7 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
     fila = fila + 1
     
     ' --- ENCABEZADOS ---
-    ws.Cells(fila, 1).Value = "CATEGORÍA"
+    ws.Cells(fila, 1).Value = "CATEGORï¿½A"
     ws.Cells(fila, 2).Value = "TIPO"
     ws.Cells(fila, 3).Value = "TOTAL"
     ws.Range(ws.Cells(fila, 1), ws.Cells(fila, 3)).Interior.Color = RGB(200, 220, 240)
@@ -105,7 +105,7 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
 
     ' --- BLOQUE 1: CATEGORIA GENERAL ---
     Dim filaIniCat As Long: filaIniCat = fila
-    ' Aquí pones las categorías que quieras fijas. Si quieres que sean dinámicas, se puede cambiar.
+    ' Aquï¿½ pones las categorï¿½as que quieras fijas. Si quieres que sean dinï¿½micas, se puede cambiar.
     Dim catsFijas As Variant
     catsFijas = Array("TRABAJADORES", "FAMILIARES", "PACIENTES", "JUBILADOS")
     
@@ -134,7 +134,7 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
     
     ' Combinar celdas de la primera columna para este bloque
     ws.Range(ws.Cells(filaIniCat, 1), ws.Cells(fila, 1)).Merge
-    ws.Cells(filaIniCat, 1).Value = "CATEGORÍA GENERAL"
+    ws.Cells(filaIniCat, 1).Value = "CATEGORï¿½A GENERAL"
     ws.Cells(filaIniCat, 1).HorizontalAlignment = xlCenter
     ws.Cells(filaIniCat, 1).VerticalAlignment = xlCenter
     ws.Cells(filaIniCat, 1).Font.Bold = True
@@ -143,7 +143,7 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
 
     ' --- BLOQUE 2: SISTEMAS AFECTADOS ---
     Dim filaIniSist As Long: filaIniSist = fila
-    ' Extraemos todas las claves (diagnósticos) del diccionario
+    ' Extraemos todas las claves (diagnï¿½sticos) del diccionario
     Dim keysSist As Variant: keysSist = dictSist.keys
     Dim totalSist As Double: totalSist = 0
     Dim k As Variant
@@ -152,7 +152,7 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
     If dictSist.count = 0 Then
         ws.Cells(fila, 2).Value = "SIN DATOS EN EL PERIODO"
     Else
-        ' Ordenar alfabéticamente (opcional, se puede omitir)
+        ' Ordenar alfabï¿½ticamente (opcional, se puede omitir)
         For Each k In keysSist
             ws.Cells(fila, 2).Value = k
             ws.Cells(fila, 3).Value = dictSist(k)
@@ -178,12 +178,12 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
     
     fila = fila + 2
 
-    ' --- BLOQUE 3: CONSULTA POR MÉDICOS ---
+    ' --- BLOQUE 3: CONSULTA POR Mï¿½DICOS ---
     Dim filaIniMed As Long: filaIniMed = fila
     Dim keysMed As Variant: keysMed = dictMed.keys
     Dim totalMed As Double: totalMed = 0
     
-    ' Agregamos los médicos de tu imagen (puedes agregar más)
+    ' Agregamos los mï¿½dicos de tu imagen (puedes agregar mï¿½s)
     Dim medsFijos As Variant
     medsFijos = Array("DRA. ARBELI HERNANDEZ", "DRA. RAQUEL RODRIGUEZ", "DRA. ROSANA VARGAS", _
                       "DRA. DALITZA FERMIN", "DRA. MARKIS GARCIA", "DR. EUSEBEL CASTILLO", _
@@ -191,7 +191,7 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
                       
     For Each k In medsFijos
         ws.Cells(fila, 2).Value = k
-        ' Si el médico existe en los datos, ponemos su total
+        ' Si el mï¿½dico existe en los datos, ponemos su total
         If dictMed.Exists(UCase(k)) Then
             ws.Cells(fila, 3).Value = dictMed(UCase(k))
             totalMed = totalMed + dictMed(UCase(k))
@@ -211,7 +211,7 @@ Private Sub DibujarReporte(ws As Worksheet, dictCat As Object, dictSist As Objec
     ws.Cells(fila, 3).Borders.LineStyle = xlContinuous
     
     ws.Range(ws.Cells(filaIniMed, 1), ws.Cells(fila, 1)).Merge
-    ws.Cells(filaIniMed, 1).Value = "CONSULTA POR MÉDICOS"
+    ws.Cells(filaIniMed, 1).Value = "CONSULTA POR Mï¿½DICOS"
     ws.Cells(filaIniMed, 1).HorizontalAlignment = xlCenter
     ws.Cells(filaIniMed, 1).VerticalAlignment = xlCenter
     ws.Cells(filaIniMed, 1).Font.Bold = True
