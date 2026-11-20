@@ -1,14 +1,14 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm 
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmLogin 
    Caption         =   "Iniciar Sesión"
    ClientHeight    =   2505
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   3615
-   OleObjectBlob   =   "UserForm.frx":0000
+   OleObjectBlob   =   "frmLogin.frx":0000
    StartUpPosition =   1  'Centrar en propietario
 End
-Attribute VB_Name = "UserForm"
+Attribute VB_Name = "frmLogin"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -35,8 +35,8 @@ Private Sub btnIngresar_Click()
     If ValidarLogin(usuarioLimpio, clave, mensaje) Then
         RegistrarHistorico ACC_LOGIN, "SISTEMA", "", "", "", "", "Ingreso al sistema"
         Unload Me
-        ' frmMenuPrincipal.Show ' <-- Esta línea la activaremos en la Fase 3
-        MsgBox "¡Login exitoso! Bienvenido " & gNombreCompleto, vbInformation, "Éxito"
+        ' Línea clave: Abre el menú principal
+        frmMenuPrincipal.Show
     Else
         RegistrarHistorico ACC_LOGIN_FALLO, "SISTEMA", "", "USUARIO", usuarioLimpio, "", mensaje
         MsgBox mensaje, vbCritical, "Error de acceso"

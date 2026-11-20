@@ -1,10 +1,11 @@
 Attribute VB_Name = "modSetup"
+'Attribute VB_Name = "modSetup"
 Option Explicit
 
-' ═══════════════════════════════════════════════════════════════════
-'  MÓDULO: modSetup
+' -------------------------------------------------------------------
+'  M�DULO: modSetup
 '  Inicializa hojas de soporte y datos por defecto
-' ═══════════════════════════════════════════════════════════════════
+' -------------------------------------------------------------------
 
 Public Sub InicializarSistema()
     On Error GoTo Errores
@@ -12,6 +13,10 @@ Public Sub InicializarSistema()
     Application.ScreenUpdating = False
     Application.DisplayAlerts = False
     
+    ' 1. Crear la copia de trabajo (Hoja Datos Editados)
+    CrearCopiaDeTrabajo
+    
+    ' 2. Crear las hojas de soporte del sistema
     CrearHojaUsuarios
     CrearHojaHistorico
     CrearHojaConfiguracion
@@ -23,7 +28,7 @@ Public Sub InicializarSistema()
            "Usuario por defecto:" & vbCrLf & _
            "  Usuario: ADMIN" & vbCrLf & _
            "  Clave:   Admin2026!" & vbCrLf & vbCrLf & _
-           "Cambie la clave al primer inicio de sesión.", _
+           "Cambie la clave al primer inicio de sesi�n.", _
            vbInformation, SISTEMA_NOMBRE
     Exit Sub
 Errores:
@@ -32,7 +37,56 @@ Errores:
     MsgBox "Error al inicializar:" & vbCrLf & Err.Description, vbCritical
 End Sub
 
-' ───────────────────────────────────────────────────────────────────
+' -------------------------------------------------------------------
+' CREAR COPIA DE TRABAJO (Se ejecuta en el primer uso)
+' -------------------------------------------------------------------
+Public Sub CrearCopiaDeTrabajo()
+    Dim wsOriginal As Worksheet
+    Dim wsCopia As Worksheet
+    Dim nombreHoja As String
+    
+    ' 1. Calculamos el nombre din�mico (Ej: "Dat_26-11-18_al_26-11-18")
+    nombreHoja = ObtenerNombreHojaEditada()
+    
+    ' 2. Verificamos si ya existe la copia para no sobrescribirla
+    If ExisteHoja(nombreHoja) Then
+        Exit Sub
+    End If
+    
+    ' 3. Verificamos que la hoja original s� exista
+    If Not ExisteHoja(HOJA_DATOS_ORIGINAL) Then
+        MsgBox "No se encontr� la hoja original: " & HOJA_DATOS_ORIGINAL & vbCrLf & _
+               "No se puede crear la copia de trabajo.", vbCritical, "Error"
+        Exit Sub
+    End If
+    
+    ' 4. Creamos la copia
+    Application.ScreenUpdating = False
+    Set wsOriginal = ThisWorkbook.Sheets(HOJA_DATOS_ORIGINAL)
+    
+    ' Copiamos la hoja original al final del libro
+    wsOriginal.Copy After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count)
+    
+    ' Renombramos la hoja reci�n copiada
+    Set wsCopia = ActiveSheet
+    wsCopia.Name = nombreHoja
+    
+    ' 5. PROTECCI�N: Evita que el usuario borre o modifique la estructura de la hoja
+    ' (El c�digo VBA seguir� teniendo permisos para guardar y editar datos)
+    On Error Resume Next
+    wsCopia.Protect Password:="Admin2026!", UserInterfaceOnly:=True
+    On Error GoTo 0
+    
+    Application.ScreenUpdating = True
+    
+    MsgBox "Se ha creado la hoja editable con el nombre:" & vbCrLf & _
+           "'" & nombreHoja & "'" & vbCrLf & vbCrLf & _
+           "Todos los cambios que realices a partir de ahora se guardar�n aqu�, " & _
+           "dejando intactos los datos originales.", _
+           vbInformation, "Copia de Trabajo Creada"
+End Sub
+
+' -------------------------------------------------------------------
 Private Sub CrearHojaUsuarios()
     Dim ws As Worksheet
     If ExisteHoja(HOJA_USUARIOS) Then Exit Sub
@@ -55,6 +109,7 @@ Private Sub CrearHojaUsuarios()
         .Cells(2, UCOL_HASH).Value = "INICIAL"
         .Cells(2, UCOL_ACTIVO).Value = "SI"
         .Cells(2, UCOL_INTENTOS).Value = 0
+        .Cells(2, UCOL_ULTIMO_ACCESO).Value = "" ' Inicializamos la columna vac�a
         
         .Columns("A:H").AutoFit
         .Columns("B").ColumnWidth = 20
@@ -64,7 +119,7 @@ Private Sub CrearHojaUsuarios()
     End With
 End Sub
 
-' ───────────────────────────────────────────────────────────────────
+' -------------------------------------------------------------------
 Private Sub CrearHojaHistorico()
     Dim ws As Worksheet
     If ExisteHoja(HOJA_HISTORICO) Then Exit Sub
@@ -90,7 +145,7 @@ Private Sub CrearHojaHistorico()
     End With
 End Sub
 
-' ───────────────────────────────────────────────────────────────────
+' -------------------------------------------------------------------
 Private Sub CrearHojaConfiguracion()
     Dim ws As Worksheet
     If ExisteHoja(HOJA_CONFIG) Then Exit Sub
@@ -106,9 +161,9 @@ Private Sub CrearHojaConfiguracion()
         .Range("A1:C1").HorizontalAlignment = xlCenter
         
         Dim fila As Long: fila = 2
-        .Cells(fila, 1).Value = "VERSION": .Cells(fila, 2).Value = SISTEMA_VERSION: .Cells(fila, 3).Value = "Versión del sistema": fila = fila + 1
+        .Cells(fila, 1).Value = "VERSION": .Cells(fila, 2).Value = SISTEMA_VERSION: .Cells(fila, 3).Value = "Versi�n del sistema": fila = fila + 1
         .Cells(fila, 1).Value = "MAX_INTENTOS": .Cells(fila, 2).Value = MAX_INTENTOS: .Cells(fila, 3).Value = "Intentos de login": fila = fila + 1
-        .Cells(fila, 1).Value = "MIN_LONG_CLAVE": .Cells(fila, 2).Value = MIN_LONG_CLAVE: .Cells(fila, 3).Value = "Longitud mínima de clave": fila = fila + 1
+        .Cells(fila, 1).Value = "MIN_LONG_CLAVE": .Cells(fila, 2).Value = MIN_LONG_CLAVE: .Cells(fila, 3).Value = "Longitud m�nima de clave": fila = fila + 1
         .Cells(fila, 1).Value = "RUTA_RESPALDO": .Cells(fila, 2).Value = CARPETA_RESPALDO: .Cells(fila, 3).Value = "Carpeta de respaldos": fila = fila + 1
         .Cells(fila, 1).Value = "RUTA_EXPORT": .Cells(fila, 2).Value = CARPETA_EXPORT: .Cells(fila, 3).Value = "Carpeta de exportaciones"
         
@@ -116,3 +171,4 @@ Private Sub CrearHojaConfiguracion()
         .Columns("C").ColumnWidth = 40
     End With
 End Sub
+

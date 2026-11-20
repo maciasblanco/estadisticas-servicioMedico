@@ -18,7 +18,7 @@ Public Sub RegistrarHistorico(ByVal accion As String, _
     Dim ws As Worksheet
     Dim fila As Long
     Set ws = ThisWorkbook.Sheets(HOJA_HISTORICO)
-    fila = ws.Cells(ws.Rows.Count, HCOL_FECHA_HORA).End(xlUp).Row + 1
+    fila = ws.Cells(ws.Rows.count, HCOL_FECHA_HORA).End(xlUp).Row + 1
     
     With ws
         .Cells(fila, HCOL_FECHA_HORA).Value = Format(Now, FORMATO_DATETIME)

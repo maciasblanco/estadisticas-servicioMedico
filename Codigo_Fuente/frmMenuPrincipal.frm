@@ -36,7 +36,7 @@ Private Sub btnDatos_Click()
 End Sub
 
 Private Sub btnEstadisticas_Click()
-    MsgBox "Aquí abriremos el formulario de Estadísticas (Fase 5).", vbInformation, "En Construcción"
+    frmEstadisticas.Show
 End Sub
 
 Private Sub btnHistorial_Click()

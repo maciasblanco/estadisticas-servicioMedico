@@ -1,22 +1,48 @@
 Attribute VB_Name = "modCRUD"
-'Option Explicit
+'Attribute VB_Name = "modCRUD"
+Option Explicit
 
 ' -------------------------------------------------------------------
-'  MÓDULO: modCRUD (Fase 4)
+'  MÓDULO: modCRUD
 '  Operaciones de Creación, Lectura, Actualización y Borrado
+'  Trabaja SIEMPRE sobre la copia "CRUD Datos desde ... hasta ..."
+'  La hoja DatosOriginales NUNCA se modifica.
 ' -------------------------------------------------------------------
 
-Public Function BuscarRegistros(ByVal criterio As String, ByRef resultados() As Variant) As Long
-    Dim ws As Worksheet: Set ws = ThisWorkbook.Sheets(HOJA_DATOS)
-    Dim lastRow As Long: lastRow = ws.Cells(ws.Rows.count, COL_CEDULA).End(xlUp).Row
+' -------------------------------------------------------------------
+' BUSCAR: devuelve el número de coincidencias y llena la matriz.
+' -------------------------------------------------------------------
+Public Function BuscarRegistros(ByVal criterio As String, _
+                                ByRef resultados() As Variant) As Long
+    On Error GoTo Errores
+    
+    ' 1) Obtener la hoja de trabajo (crea la copia si no existe)
+    Dim nombreHoja As String
+    nombreHoja = ObtenerHojaTrabajo()
+    If nombreHoja = "" Then
+        BuscarRegistros = 0
+        Exit Function
+    End If
+    
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets(nombreHoja)
+    
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.count, COL_CEDULA).End(xlUp).Row
+    If lastRow < 2 Then
+        BuscarRegistros = 0
+        Exit Function
+    End If
+    
     Dim count As Long: count = 0
     criterio = UCase(Trim(criterio))
     Dim i As Long
     
-    ' Primera pasada: contar cuántos registros coinciden
+    ' Primera pasada: contar coincidencias
     For i = 2 To lastRow
         Dim textoFila As String
-        textoFila = UCase(CStr(ws.Cells(i, COL_NOMBRE).Value) & "|" & CStr(ws.Cells(i, COL_CEDULA).Value))
+        textoFila = UCase(CStr(ws.Cells(i, COL_NOMBRE).Value) & "|" & _
+                          CStr(ws.Cells(i, COL_CEDULA).Value))
         If Len(criterio) = 0 Or InStr(1, textoFila, criterio, vbTextCompare) > 0 Then
             count = count + 1
         End If
@@ -27,14 +53,15 @@ Public Function BuscarRegistros(ByVal criterio As String, ByRef resultados() As 
         Exit Function
     End If
     
-    ' Redimensionar la matriz de resultados
+    ' Redimensionar matriz
     ReDim resultados(1 To count, 1 To 10)
     Dim k As Long: k = 0
     
-    ' Segunda pasada: llenar la matriz
+    ' Segunda pasada: llenar matriz
     For i = 2 To lastRow
         Dim textoFila2 As String
-        textoFila2 = UCase(CStr(ws.Cells(i, COL_NOMBRE).Value) & "|" & CStr(ws.Cells(i, COL_CEDULA).Value))
+        textoFila2 = UCase(CStr(ws.Cells(i, COL_NOMBRE).Value) & "|" & _
+                           CStr(ws.Cells(i, COL_CEDULA).Value))
         If Len(criterio) = 0 Or InStr(1, textoFila2, criterio, vbTextCompare) > 0 Then
             k = k + 1
             resultados(k, 1) = ws.Cells(i, COL_FECHA).Value
@@ -51,81 +78,140 @@ Public Function BuscarRegistros(ByVal criterio As String, ByRef resultados() As 
     Next i
     
     BuscarRegistros = count
+    Exit Function
+Errores:
+    MsgBox "Error al buscar registros:" & vbCrLf & Err.Description, vbCritical
+    BuscarRegistros = 0
 End Function
 
+' -------------------------------------------------------------------
+' INSERTAR: agrega un nuevo registro al final de la hoja de trabajo.
+' -------------------------------------------------------------------
 Public Function InsertarRegistro(ByRef valores() As Variant) As Boolean
     On Error GoTo Errores
+    InsertarRegistro = False
     
     If Not TienePermiso("INSERT") Then
         MsgBox MSG_SIN_PERMISO, vbExclamation, "Permiso Denegado"
-        InsertarRegistro = False: Exit Function
+        Exit Function
     End If
     
-    Dim ws As Worksheet: Set ws = ThisWorkbook.Sheets(HOJA_DATOS)
-    Dim fila As Long: fila = ws.Cells(ws.Rows.count, COL_CEDULA).End(xlUp).Row + 1
-    Dim i As Long
-    Dim detalle As String
+    Dim nombreHoja As String
+    nombreHoja = ObtenerHojaTrabajo()
+    If nombreHoja = "" Then Exit Function
     
-    ' Escribir en Excel y armar el texto de auditoría
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets(nombreHoja)
+    
+    ' Validar cédula duplicada
+    Dim cedulaNueva As String: cedulaNueva = Trim(CStr(valores(3)))
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.count, COL_CEDULA).End(xlUp).Row
+    Dim j As Long
+    For j = 2 To lastRow
+        If Trim(CStr(ws.Cells(j, COL_CEDULA).Value)) = cedulaNueva Then
+            MsgBox "Ya existe un registro con la cédula " & cedulaNueva & ".", _
+                   vbExclamation, "Cédula duplicada"
+            Exit Function
+        End If
+    Next j
+    
+    ' Escribir en la primera fila libre
+    Dim fila As Long: fila = lastRow + 1
+    Dim i As Long, detalle As String
     For i = LBound(valores) To UBound(valores)
         ws.Cells(fila, i - LBound(valores) + 1).Value = valores(i)
         detalle = detalle & CStr(valores(i)) & " | "
     Next i
     
-    ' Guardar en historial usando el string armado manualmente (evita el error de Join)
-    RegistrarHistorico ACC_INSERT, HOJA_DATOS, fila, "REGISTRO COMPLETO", "", detalle, "Registro creado"
+    RegistrarHistorico ACC_INSERT, nombreHoja, fila, "REGISTRO COMPLETO", "", detalle, "Registro creado"
     InsertarRegistro = True
     Exit Function
 Errores:
-    MsgBox "Error al insertar: " & Err.Description, vbCritical: InsertarRegistro = False
+    MsgBox "Error al insertar:" & vbCrLf & Err.Description, vbCritical
+    InsertarRegistro = False
 End Function
 
-Public Function ActualizarRegistro(ByVal fila As Long, ByRef valores() As Variant) As Boolean
+' -------------------------------------------------------------------
+' ACTUALIZAR: modifica una fila existente en la hoja de trabajo.
+' -------------------------------------------------------------------
+Public Function ActualizarRegistro(ByVal fila As Long, _
+                                   ByRef valores() As Variant) As Boolean
     On Error GoTo Errores
+    ActualizarRegistro = False
     
     If Not TienePermiso("UPDATE") Then
         MsgBox MSG_SIN_PERMISO, vbExclamation, "Permiso Denegado"
-        ActualizarRegistro = False: Exit Function
+        Exit Function
     End If
     
-    Dim ws As Worksheet: Set ws = ThisWorkbook.Sheets(HOJA_DATOS)
-    Dim i As Long, col As Long
+    If fila < 2 Then
+        MsgBox "Fila inválida para actualizar.", vbExclamation
+        Exit Function
+    End If
     
+    Dim nombreHoja As String
+    nombreHoja = ObtenerHojaTrabajo()
+    If nombreHoja = "" Then Exit Function
+    
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets(nombreHoja)
+    
+    Dim i As Long, col As Long
     For i = LBound(valores) To UBound(valores)
         col = i - LBound(valores) + 1
         Dim valAnt As Variant: valAnt = ws.Cells(fila, col).Value
         If CStr(valAnt) <> CStr(valores(i)) Then
             ws.Cells(fila, col).Value = valores(i)
-            RegistrarHistorico ACC_UPDATE, HOJA_DATOS, fila, CStr(ws.Cells(FILA_ENCABEZADO, col).Value), valAnt, valores(i), "Modificación"
+            RegistrarHistorico ACC_UPDATE, nombreHoja, fila, _
+                CStr(ws.Cells(FILA_ENCABEZADO, col).Value), _
+                valAnt, valores(i), "Modificación"
         End If
     Next i
     
     ActualizarRegistro = True
     Exit Function
 Errores:
-    MsgBox "Error al actualizar: " & Err.Description, vbCritical: ActualizarRegistro = False
+    MsgBox "Error al actualizar:" & vbCrLf & Err.Description, vbCritical
+    ActualizarRegistro = False
 End Function
 
+' -------------------------------------------------------------------
+' ELIMINAR: borra una fila de la hoja de trabajo.
+' -------------------------------------------------------------------
 Public Function EliminarRegistro(ByVal fila As Long) As Boolean
     On Error GoTo Errores
+    EliminarRegistro = False
     
     If Not TienePermiso("DELETE") Then
         MsgBox MSG_SIN_PERMISO, vbExclamation, "Permiso Denegado"
-        EliminarRegistro = False: Exit Function
+        Exit Function
     End If
     
-    Dim ws As Worksheet: Set ws = ThisWorkbook.Sheets(HOJA_DATOS)
-    Dim backup As String
-    Dim i As Long
+    If fila < 2 Then
+        MsgBox "Fila inválida para eliminar.", vbExclamation
+        Exit Function
+    End If
     
+    Dim nombreHoja As String
+    nombreHoja = ObtenerHojaTrabajo()
+    If nombreHoja = "" Then Exit Function
+    
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets(nombreHoja)
+    
+    ' Respaldar la fila antes de borrar
+    Dim backup As String, i As Long
     For i = 1 To 10
         backup = backup & CStr(ws.Cells(fila, i).Value) & " | "
     Next i
     
-    RegistrarHistorico ACC_DELETE, HOJA_DATOS, fila, "REGISTRO COMPLETO", backup, "", "Registro eliminado"
+    RegistrarHistorico ACC_DELETE, nombreHoja, fila, "REGISTRO COMPLETO", backup, "", "Registro eliminado"
     ws.Rows(fila).Delete Shift:=xlUp
     EliminarRegistro = True
     Exit Function
 Errores:
-    MsgBox "Error al eliminar: " & Err.Description, vbCritical: EliminarRegistro = False
+    MsgBox "Error al eliminar:" & vbCrLf & Err.Description, vbCritical
+    EliminarRegistro = False
 End Function
+

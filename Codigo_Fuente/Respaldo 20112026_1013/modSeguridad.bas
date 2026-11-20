@@ -1,4 +1,5 @@
 Attribute VB_Name = "modSeguridad"
+'Attribute VB_Name = "modSeguridad"
 Option Explicit
 
 ' -------------------------------------------------------------------
@@ -14,7 +15,7 @@ Public Function GenerarHash(ByVal texto As String) As String
 End Function
 
 Private Function SHA256_Hex(ByRef data() As Byte) As String
-    Dim K(0 To 63) As Long
+    Dim k(0 To 63) As Long
     Dim H_Hash(0 To 7) As Long
     Dim w(0 To 63) As Long
     Dim Kvals As Variant
@@ -46,7 +47,7 @@ Private Function SHA256_Hex(ByRef data() As Byte) As String
     Dim suma As Double
     
     For i = 0 To 63
-        K(i) = Kvals(i)
+        k(i) = Kvals(i)
     Next
     
     H_Hash(0) = &H6A09E667
@@ -71,6 +72,7 @@ Private Function SHA256_Hex(ByRef data() As Byte) As String
     Next
     
     For bloque = 0 To UBound(data) Step 64
+        ' --- PREPARACIÓN DEL MENSAJE ---
         For t = 0 To 15
             suma = (CDbl(data(bloque + t * 4)) * 16777216#) + _
                    (CDbl(data(bloque + t * 4 + 1)) * 65536#) + _
@@ -86,10 +88,14 @@ Private Function SHA256_Hex(ByRef data() As Byte) As String
             
             suma = CDbl(w(t - 16)) + CDbl(s0) + CDbl(w(t - 7)) + CDbl(s1)
             suma = suma - Int(suma / 4294967296#) * 4294967296#
+            
+            If suma > 2147483647# Then suma = suma - 4294967296#
+            
             w(t) = CLng(suma)
             w(t) = w(t) And &HFFFFFFFF
         Next
         
+        ' --- COMPRESIÓN PRINCIPAL ---
         a = H_Hash(0): b = H_Hash(1): c = H_Hash(2): d = H_Hash(3)
         e = H_Hash(4): f = H_Hash(5): g = H_Hash(6): h = H_Hash(7)
         
@@ -97,7 +103,7 @@ Private Function SHA256_Hex(ByRef data() As Byte) As String
             s1 = RShift(e, 6) Xor RShift(e, 11) Xor RShift(e, 25)
             ch = (e And f) Xor ((Not e) And g)
             
-            temp1 = CDbl(h) + CDbl(s1) + CDbl(ch) + CDbl(K(t)) + CDbl(w(t))
+            temp1 = CDbl(h) + CDbl(s1) + CDbl(ch) + CDbl(k(t)) + CDbl(w(t))
             temp1 = temp1 - Int(temp1 / 4294967296#) * 4294967296#
             
             s0 = RShift(a, 2) Xor RShift(a, 13) Xor RShift(a, 22)
@@ -110,23 +116,26 @@ Private Function SHA256_Hex(ByRef data() As Byte) As String
             
             suma = CDbl(d) + temp1
             suma = suma - Int(suma / 4294967296#) * 4294967296#
+            If suma > 2147483647# Then suma = suma - 4294967296#
             e = CLng(suma)
             
             d = c: c = b: b = a
             
             suma = temp1 + temp2
             suma = suma - Int(suma / 4294967296#) * 4294967296#
+            If suma > 2147483647# Then suma = suma - 4294967296#
             a = CLng(suma)
         Next
         
-        suma = CDbl(H_Hash(0)) + CDbl(a): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(0) = CLng(suma)
-        suma = CDbl(H_Hash(1)) + CDbl(b): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(1) = CLng(suma)
-        suma = CDbl(H_Hash(2)) + CDbl(c): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(2) = CLng(suma)
-        suma = CDbl(H_Hash(3)) + CDbl(d): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(3) = CLng(suma)
-        suma = CDbl(H_Hash(4)) + CDbl(e): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(4) = CLng(suma)
-        suma = CDbl(H_Hash(5)) + CDbl(f): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(5) = CLng(suma)
-        suma = CDbl(H_Hash(6)) + CDbl(g): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(6) = CLng(suma)
-        suma = CDbl(H_Hash(7)) + CDbl(h): suma = suma - Int(suma / 4294967296#) * 4294967296#: H_Hash(7) = CLng(suma)
+        ' --- ACTUALIZACIÓN DEL HASH ---
+        suma = CDbl(H_Hash(0)) + CDbl(a): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(0) = CLng(suma)
+        suma = CDbl(H_Hash(1)) + CDbl(b): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(1) = CLng(suma)
+        suma = CDbl(H_Hash(2)) + CDbl(c): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(2) = CLng(suma)
+        suma = CDbl(H_Hash(3)) + CDbl(d): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(3) = CLng(suma)
+        suma = CDbl(H_Hash(4)) + CDbl(e): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(4) = CLng(suma)
+        suma = CDbl(H_Hash(5)) + CDbl(f): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(5) = CLng(suma)
+        suma = CDbl(H_Hash(6)) + CDbl(g): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(6) = CLng(suma)
+        suma = CDbl(H_Hash(7)) + CDbl(h): suma = suma - Int(suma / 4294967296#) * 4294967296#: If suma > 2147483647# Then suma = suma - 4294967296#: H_Hash(7) = CLng(suma)
     Next
     
     Dim s As String
@@ -140,8 +149,9 @@ Private Function RShift(ByVal v As Long, ByVal n As Integer) As Long
     Dim d As Double
     d = v
     If d < 0 Then d = d + 4294967296#
+    ' En VBA, 'And &HFFFFFFFF' ya maneja el bit de signo correctamente para Long.
+    ' Se elimina la suma que causaba el desbordamiento.
     RShift = Int(d / (2 ^ n)) And &HFFFFFFFF
-    If RShift < 0 Then RShift = RShift + 4294967296#
 End Function
 
 Public Function ValidarLogin(ByVal usuario As String, ByVal clave As String, _
@@ -161,7 +171,7 @@ Public Function ValidarLogin(ByVal usuario As String, ByVal clave As String, _
     Dim hashGuardado As String
     
     Set ws = ThisWorkbook.Sheets(HOJA_USUARIOS)
-    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.count, 1).End(xlUp).Row
     usuarioLimpio = UCase(Trim(usuario))
     
     For i = 2 To lastRow
@@ -213,7 +223,7 @@ Public Function CambiarClave(ByVal usuario As String, ByVal claveNueva As String
     Dim i As Long
     
     Set ws = ThisWorkbook.Sheets(HOJA_USUARIOS)
-    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.count, 1).End(xlUp).Row
     
     For i = 2 To lastRow
         If UCase(Trim(CStr(ws.Cells(i, UCOL_USUARIO).Value))) = UCase(Trim(usuario)) Then
