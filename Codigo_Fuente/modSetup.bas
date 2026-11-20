@@ -4,171 +4,153 @@ Option Explicit
 
 ' -------------------------------------------------------------------
 '  MÓDULO: modSetup
-'  Inicializa hojas de soporte y datos por defecto
+'  Inicializa hojas de soporte, datos por defecto y el entorno
 ' -------------------------------------------------------------------
 
-Public Sub InicializarSistema()
+' -------------------------------------------------------------------
+' INICIALIZAR EL ENTORNO DE TRABAJO (Hojas y datos base)
+' -------------------------------------------------------------------
+Public Sub InicializarEntornoDeTrabajo()
     On Error GoTo Errores
     
     Application.ScreenUpdating = False
     Application.DisplayAlerts = False
     
-    ' 1. Crear la copia de trabajo (Hoja Datos Editados)
-    CrearCopiaDeTrabajo
+    ' 1. Crear hojas de soporte si no existen
+    CrearHojaSiNoExiste HOJA_USUARIOS, _
+        Array("ID", "USUARIO", "NOMBRE_COMPLETO", "ROL", "HASH_CLAVE", "ACTIVO", "INTENTOS", "ULTIMO_ACCESO")
     
-    ' 2. Crear las hojas de soporte del sistema
-    CrearHojaUsuarios
-    CrearHojaHistorico
-    CrearHojaConfiguracion
+    CrearHojaSiNoExiste HOJA_HISTORICO, _
+        Array("FECHA_HORA", "USUARIO", "ACCION", "HOJA", "ID_REGISTRO", "CAMPO", "VALOR_ANTERIOR", "VALOR_NUEVO", "DETALLE", "EQUIPO")
+    
+    CrearHojaSiNoExiste HOJA_CONFIG, _
+        Array("PARAMETRO", "VALOR", "DESCRIPCION")
+        
+    ' 2. Crear catálogos con datos por defecto
+    CrearCatalogosBase
+    
+    ' 3. Crear el usuario ADMIN por defecto
+    CrearAdminPorDefecto
+    
+    ' 4. Crear la hoja de trabajo (CRUD Datos desde... hasta...)
+    If ExisteHoja(HOJA_DATOS_ORIGINAL) Then
+        Dim nombreCopia As String
+        nombreCopia = ObtenerHojaTrabajo() ' Llama a modDatos
+        If nombreCopia <> "" Then
+            Debug.Print "Hoja de trabajo lista: " & nombreCopia
+        End If
+    Else
+        MsgBox "Aviso: La hoja '" & HOJA_DATOS_ORIGINAL & "' no existe. No se pudo crear la copia de trabajo.", vbExclamation
+    End If
     
     Application.DisplayAlerts = True
     Application.ScreenUpdating = True
     
-    MsgBox "Sistema inicializado correctamente." & vbCrLf & vbCrLf & _
-           "Usuario por defecto:" & vbCrLf & _
-           "  Usuario: ADMIN" & vbCrLf & _
-           "  Clave:   Admin2026!" & vbCrLf & vbCrLf & _
-           "Cambie la clave al primer inicio de sesión.", _
-           vbInformation, SISTEMA_NOMBRE
+    MsgBox "Entorno inicializado correctamente. Hojas base creadas.", vbInformation, "Listo"
     Exit Sub
 Errores:
     Application.DisplayAlerts = True
     Application.ScreenUpdating = True
-    MsgBox "Error al inicializar:" & vbCrLf & Err.Description, vbCritical
+    MsgBox "Error al inicializar el entorno: " & Err.Description, vbCritical
 End Sub
 
 ' -------------------------------------------------------------------
-' CREAR COPIA DE TRABAJO (Se ejecuta en el primer uso)
+' FUNCIÓN AUXILIAR PARA CREAR HOJAS SI NO EXISTEN
 ' -------------------------------------------------------------------
-Public Sub CrearCopiaDeTrabajo()
-    Dim wsOriginal As Worksheet
-    Dim wsCopia As Worksheet
-    Dim nombreHoja As String
-    
-    ' 1. Calculamos el nombre dinámico (Ej: "Dat_26-11-18_al_26-11-18")
-    nombreHoja = ObtenerNombreHojaEditada()
-    
-    ' 2. Verificamos si ya existe la copia para no sobrescribirla
-    If ExisteHoja(nombreHoja) Then
-        Exit Sub
-    End If
-    
-    ' 3. Verificamos que la hoja original sí exista
-    If Not ExisteHoja(HOJA_DATOS_ORIGINAL) Then
-        MsgBox "No se encontró la hoja original: " & HOJA_DATOS_ORIGINAL & vbCrLf & _
-               "No se puede crear la copia de trabajo.", vbCritical, "Error"
-        Exit Sub
-    End If
-    
-    ' 4. Creamos la copia
-    Application.ScreenUpdating = False
-    Set wsOriginal = ThisWorkbook.Sheets(HOJA_DATOS_ORIGINAL)
-    
-    ' Copiamos la hoja original al final del libro
-    wsOriginal.Copy After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count)
-    
-    ' Renombramos la hoja recién copiada
-    Set wsCopia = ActiveSheet
-    wsCopia.Name = nombreHoja
-    
-    ' 5. PROTECCIÓN: Evita que el usuario borre o modifique la estructura de la hoja
-    ' (El código VBA seguirá teniendo permisos para guardar y editar datos)
+Private Sub CrearHojaSiNoExiste(ByVal nombre As String, ByVal encabezados As Variant)
+    Dim ws As Worksheet
     On Error Resume Next
-    wsCopia.Protect Password:="Admin2026!", UserInterfaceOnly:=True
+    Set ws = ThisWorkbook.Sheets(nombre)
     On Error GoTo 0
     
-    Application.ScreenUpdating = True
-    
-    MsgBox "Se ha creado la hoja editable con el nombre:" & vbCrLf & _
-           "'" & nombreHoja & "'" & vbCrLf & vbCrLf & _
-           "Todos los cambios que realices a partir de ahora se guardarán aquí, " & _
-           "dejando intactos los datos originales.", _
-           vbInformation, "Copia de Trabajo Creada"
+    If ws Is Nothing Then
+        Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
+        ws.Name = nombre
+        Dim i As Long
+        For i = LBound(encabezados) To UBound(encabezados)
+            ws.Cells(1, i - LBound(encabezados) + 1).Value = encabezados(i)
+        Next
+        With ws.Range("A1").Resize(1, UBound(encabezados) - LBound(encabezados) + 1)
+            .Font.Bold = True
+            .Interior.Color = RGB(31, 78, 120)
+            .Font.Color = RGB(255, 255, 255)
+        End With
+        ws.Columns.AutoFit
+    End If
 End Sub
 
 ' -------------------------------------------------------------------
-Private Sub CrearHojaUsuarios()
+' FUNCIÓN PARA LLENAR LOS CATÁLOGOS
+' -------------------------------------------------------------------
+Private Sub CrearCatalogosBase()
     Dim ws As Worksheet
-    If ExisteHoja(HOJA_USUARIOS) Then Exit Sub
     
-    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
-    ws.Name = HOJA_USUARIOS
+    CrearHojaSiNoExiste HOJA_SEXO, Array("ID", "DESCRIPCION")
+    Set ws = ThisWorkbook.Sheets(HOJA_SEXO)
+    If ws.Cells(ws.Rows.count, 2).End(xlUp).Row = 1 Then
+        ws.Cells(2, 1).Value = 1: ws.Cells(2, 2).Value = "MASCULINO"
+        ws.Cells(3, 1).Value = 2: ws.Cells(3, 2).Value = "FEMENINO"
+    End If
     
-    With ws
-        .Range("A1:H1").Value = Array("ID", "USUARIO", "NOMBRE_COMPLETO", "ROL", _
-                                      "HASH_CLAVE", "ACTIVO", "INTENTOS", "ULTIMO_ACCESO")
-        .Range("A1:H1").Font.Bold = True
-        .Range("A1:H1").Interior.Color = COLOR_PRIMARIO
-        .Range("A1:H1").Font.Color = COLOR_TEXTO_CLARO
-        .Range("A1:H1").HorizontalAlignment = xlCenter
-        
-        .Cells(2, UCOL_ID).Value = 1
-        .Cells(2, UCOL_USUARIO).Value = "ADMIN"
-        .Cells(2, UCOL_NOMBRE).Value = "Administrador del Sistema"
-        .Cells(2, UCOL_ROL).Value = ROL_ADMIN
-        .Cells(2, UCOL_HASH).Value = "INICIAL"
-        .Cells(2, UCOL_ACTIVO).Value = "SI"
-        .Cells(2, UCOL_INTENTOS).Value = 0
-        .Cells(2, UCOL_ULTIMO_ACCESO).Value = "" ' Inicializamos la columna vacía
-        
-        .Columns("A:H").AutoFit
-        .Columns("B").ColumnWidth = 20
-        .Columns("C").ColumnWidth = 30
-        .Columns("E").ColumnWidth = 70
-        .Rows("1:1").RowHeight = 22
-    End With
+    CrearHojaSiNoExiste HOJA_ATENCION, Array("ID", "DESCRIPCION")
+    Set ws = ThisWorkbook.Sheets(HOJA_ATENCION)
+    If ws.Cells(ws.Rows.count, 2).End(xlUp).Row = 1 Then
+        ws.Cells(2, 1).Value = 1: ws.Cells(2, 2).Value = "CONSULTA"
+        ws.Cells(3, 1).Value = 2: ws.Cells(3, 2).Value = "EMERGENCIA"
+        ws.Cells(4, 1).Value = 3: ws.Cells(4, 2).Value = "CONTROL"
+        ws.Cells(5, 1).Value = 4: ws.Cells(5, 2).Value = "REFERIDO"
+    End If
+    
+    CrearHojaSiNoExiste HOJA_MEDICO, Array("ID", "DESCRIPCION")
+    Set ws = ThisWorkbook.Sheets(HOJA_MEDICO)
+    If ws.Cells(ws.Rows.count, 2).End(xlUp).Row = 1 Then
+        ws.Cells(2, 1).Value = 1: ws.Cells(2, 2).Value = "DRA. ARBELI HERNANDEZ"
+        ws.Cells(3, 1).Value = 2: ws.Cells(3, 2).Value = "DRA. RAQUEL RODRIGUEZ"
+        ws.Cells(4, 1).Value = 3: ws.Cells(4, 2).Value = "DRA. ROSANA VARGAS"
+        ws.Cells(5, 1).Value = 4: ws.Cells(5, 2).Value = "DRA. DALITZA FERMIN"
+        ws.Cells(6, 1).Value = 5: ws.Cells(6, 2).Value = "DRA. MARKIS GARCIA"
+        ws.Cells(7, 1).Value = 6: ws.Cells(7, 2).Value = "DR. EUSEBEL CASTILLO"
+        ws.Cells(8, 1).Value = 7: ws.Cells(8, 2).Value = "DR. ISAAC MAR PEDIATRA"
+        ws.Cells(9, 1).Value = 8: ws.Cells(9, 2).Value = "DR. HUGO PADILLA CONSULTA"
+    End If
+    
+    CrearHojaSiNoExiste HOJA_PROCEDENCIA, Array("ID", "DESCRIPCION")
+    Set ws = ThisWorkbook.Sheets(HOJA_PROCEDENCIA)
+    If ws.Cells(ws.Rows.count, 2).End(xlUp).Row = 1 Then
+        ws.Cells(2, 1).Value = 1: ws.Cells(2, 2).Value = "TRABAJADORES"
+        ws.Cells(3, 1).Value = 2: ws.Cells(3, 2).Value = "FAMILIARES"
+        ws.Cells(4, 1).Value = 3: ws.Cells(4, 2).Value = "PACIENTES"
+        ws.Cells(5, 1).Value = 4: ws.Cells(5, 2).Value = "JUBILADOS"
+    End If
+    
+    CrearHojaSiNoExiste HOJA_DIAGNOSTICO, Array("ID", "DESCRIPCION")
+    Set ws = ThisWorkbook.Sheets(HOJA_DIAGNOSTICO)
+    If ws.Cells(ws.Rows.count, 2).End(xlUp).Row = 1 Then
+        ws.Cells(2, 1).Value = 1: ws.Cells(2, 2).Value = "RESFRIADO COMUN"
+        ws.Cells(3, 1).Value = 2: ws.Cells(3, 2).Value = "GASTRITIS"
+        ws.Cells(4, 1).Value = 3: ws.Cells(4, 2).Value = "HIPERTENSION"
+        ws.Cells(5, 1).Value = 4: ws.Cells(5, 2).Value = "DIABETES"
+    End If
 End Sub
 
 ' -------------------------------------------------------------------
-Private Sub CrearHojaHistorico()
-    Dim ws As Worksheet
-    If ExisteHoja(HOJA_HISTORICO) Then Exit Sub
-    
-    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
-    ws.Name = HOJA_HISTORICO
-    
-    With ws
-        .Range("A1:J1").Value = Array("FECHA_HORA", "USUARIO", "ACCION", "HOJA", _
-                                       "ID_REGISTRO", "CAMPO", "VALOR_ANTERIOR", _
-                                       "VALOR_NUEVO", "DETALLE", "EQUIPO")
-        .Range("A1:J1").Font.Bold = True
-        .Range("A1:J1").Interior.Color = COLOR_PRIMARIO
-        .Range("A1:J1").Font.Color = COLOR_TEXTO_CLARO
-        .Range("A1:J1").HorizontalAlignment = xlCenter
-        
-        .Columns("A:A").ColumnWidth = 20
-        .Columns("B:B").ColumnWidth = 15
-        .Columns("C:C").ColumnWidth = 14
-        .Columns("D:D").ColumnWidth = 22
-        .Columns("E:J").ColumnWidth = 25
-        .Rows("1:1").RowHeight = 22
-    End With
-End Sub
-
+' FUNCIÓN PARA CREAR EL ADMINISTRADOR POR DEFECTO
 ' -------------------------------------------------------------------
-Private Sub CrearHojaConfiguracion()
+Private Sub CrearAdminPorDefecto()
     Dim ws As Worksheet
-    If ExisteHoja(HOJA_CONFIG) Then Exit Sub
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets(HOJA_USUARIOS)
+    On Error GoTo 0
+    If ws Is Nothing Then Exit Sub
     
-    Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.count))
-    ws.Name = HOJA_CONFIG
+    If ws.Cells(ws.Rows.count, 2).End(xlUp).Row >= 2 Then Exit Sub
     
-    With ws
-        .Range("A1:C1").Value = Array("PARAMETRO", "VALOR", "DESCRIPCION")
-        .Range("A1:C1").Font.Bold = True
-        .Range("A1:C1").Interior.Color = COLOR_PRIMARIO
-        .Range("A1:C1").Font.Color = COLOR_TEXTO_CLARO
-        .Range("A1:C1").HorizontalAlignment = xlCenter
-        
-        Dim fila As Long: fila = 2
-        .Cells(fila, 1).Value = "VERSION": .Cells(fila, 2).Value = SISTEMA_VERSION: .Cells(fila, 3).Value = "Versión del sistema": fila = fila + 1
-        .Cells(fila, 1).Value = "MAX_INTENTOS": .Cells(fila, 2).Value = MAX_INTENTOS: .Cells(fila, 3).Value = "Intentos de login": fila = fila + 1
-        .Cells(fila, 1).Value = "MIN_LONG_CLAVE": .Cells(fila, 2).Value = MIN_LONG_CLAVE: .Cells(fila, 3).Value = "Longitud mínima de clave": fila = fila + 1
-        .Cells(fila, 1).Value = "RUTA_RESPALDO": .Cells(fila, 2).Value = CARPETA_RESPALDO: .Cells(fila, 3).Value = "Carpeta de respaldos": fila = fila + 1
-        .Cells(fila, 1).Value = "RUTA_EXPORT": .Cells(fila, 2).Value = CARPETA_EXPORT: .Cells(fila, 3).Value = "Carpeta de exportaciones"
-        
-        .Columns("A:C").AutoFit
-        .Columns("C").ColumnWidth = 40
-    End With
+    ws.Cells(2, UCOL_ID).Value = 1
+    ws.Cells(2, UCOL_USUARIO).Value = "ADMIN"
+    ws.Cells(2, UCOL_NOMBRE).Value = "Administrador del Sistema"
+    ws.Cells(2, UCOL_ROL).Value = ROL_ADMIN
+    ws.Cells(2, UCOL_HASH).Value = "INICIAL"
+    ws.Cells(2, UCOL_ACTIVO).Value = "SI"
+    ws.Cells(2, UCOL_INTENTOS).Value = 0
 End Sub
 
