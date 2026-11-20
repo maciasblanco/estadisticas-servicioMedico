@@ -2,37 +2,24 @@ Attribute VB_Name = "modVariables"
 'Attribute VB_Name = "modVariables"
 Option Explicit
 
-' -------------------------------------------------------------------
-'  MÓDULO: modVariables
-'  Constantes, variables globales y utilidades del Sistema Médico
-' -------------------------------------------------------------------
-
-' -------------------------------------------------------------------
-' 1. IDENTIDAD DEL SISTEMA
-' -------------------------------------------------------------------
+' --- 1. IDENTIDAD ---
 Public Const SISTEMA_NOMBRE     As String = "Sistema de Gestión Médica"
 Public Const SISTEMA_VERSION    As String = "2.0.0"
 Public Const SISTEMA_AUTOR      As String = "Dirección de Salud"
 Public Const SISTEMA_ANIO       As String = "2026"
 
-' -------------------------------------------------------------------
-' 2. SESIÓN DEL USUARIO Y VARIABLES GLOBALES
-' -------------------------------------------------------------------
+' --- 2. SESIÓN ---
 Public gUsuarioActual       As String
 Public gNombreCompleto      As String
 Public gRolUsuario          As String
 Public gFechaLogin          As Date
 Public gEquipoActual        As String
 Public gSesionActiva        As Boolean
-
-' Variable para controlar el nombre de la hoja de trabajo actual
 Public gNombreHojaEditada   As String
 
-' -------------------------------------------------------------------
-' 3. NOMBRES DE HOJAS
-' -------------------------------------------------------------------
-Public Const HOJA_DATOS_ORIGINAL As String = "DatosOriginales"   ' Intocable
-Public Const HOJA_DATOS_PREFIJO  As String = "CRUD Datos desde "  ' Prefijo de la copia
+' --- 3. HOJAS ---
+Public Const HOJA_DATOS_ORIGINAL As String = "DatosOriginales"
+Public Const HOJA_DATOS_PREFIJO  As String = "CRUD Datos "
 Public Const HOJA_SEXO           As String = "Datos-Sexo"
 Public Const HOJA_ATENCION       As String = "Datos-TipoAtencion"
 Public Const HOJA_MEDICO         As String = "Datos-MedicoTratante"
@@ -43,9 +30,7 @@ Public Const HOJA_USUARIOS       As String = "Usuarios"
 Public Const HOJA_HISTORICO      As String = "Historico"
 Public Const HOJA_CONFIG         As String = "Configuracion"
 
-' -------------------------------------------------------------------
-' 4. COLUMNAS HOJA PRINCIPAL
-' -------------------------------------------------------------------
+' --- 4. COLUMNAS PRINCIPALES ---
 Public Const COL_FECHA          As Integer = 1
 Public Const COL_NOMBRE         As Integer = 2
 Public Const COL_CEDULA         As Integer = 3
@@ -58,9 +43,7 @@ Public Const COL_PROCEDENCIA    As Integer = 9
 Public Const COL_DIAGNOSTICO    As Integer = 10
 Public Const FILA_ENCABEZADO    As Long = 1
 
-' -------------------------------------------------------------------
-' 5. COLUMNAS HISTÓRICO
-' -------------------------------------------------------------------
+' --- 5. COLUMNAS HISTÓRICO ---
 Public Const HCOL_FECHA_HORA     As Integer = 1
 Public Const HCOL_USUARIO        As Integer = 2
 Public Const HCOL_ACCION         As Integer = 3
@@ -72,9 +55,7 @@ Public Const HCOL_VALOR_NUEVO    As Integer = 8
 Public Const HCOL_DETALLE        As Integer = 9
 Public Const HCOL_EQUIPO         As Integer = 10
 
-' -------------------------------------------------------------------
-' 6. COLUMNAS USUARIOS
-' -------------------------------------------------------------------
+' --- 6. COLUMNAS USUARIOS ---
 Public Const UCOL_ID             As Integer = 1
 Public Const UCOL_USUARIO        As Integer = 2
 Public Const UCOL_NOMBRE         As Integer = 3
@@ -84,9 +65,7 @@ Public Const UCOL_ACTIVO         As Integer = 6
 Public Const UCOL_INTENTOS       As Integer = 7
 Public Const UCOL_ULTIMO_ACCESO  As Integer = 8
 
-' -------------------------------------------------------------------
-' 7. ACCIONES DE AUDITORÍA
-' -------------------------------------------------------------------
+' --- 7. ACCIONES ---
 Public Const ACC_INSERT         As String = "INSERT"
 Public Const ACC_UPDATE         As String = "UPDATE"
 Public Const ACC_DELETE         As String = "DELETE"
@@ -98,55 +77,31 @@ Public Const ACC_ESTADISTICA    As String = "ESTADISTICA"
 Public Const ACC_RESPALDO       As String = "RESPALDO"
 Public Const ACC_CONFIG         As String = "CONFIG"
 
-' -------------------------------------------------------------------
-' 8. ROLES
-' -------------------------------------------------------------------
+' --- 8. ROLES ---
 Public Const ROL_ADMIN          As String = "ADMIN"
 Public Const ROL_MEDICO         As String = "MEDICO"
 Public Const ROL_ESTADISTICA    As String = "ESTADISTICA"
 Public Const ROL_CONSULTA       As String = "CONSULTA"
 
-' -------------------------------------------------------------------
-' 9. PERÍODOS ESTADÍSTICOS
-' -------------------------------------------------------------------
-Public Const PER_MES            As String = "Por Mes"
-Public Const PER_TRIMESTRE      As String = "Por Trimestre"
-Public Const PER_SEMESTRE       As String = "Por Semestre"
-Public Const PER_RANGO          As String = "Rango Específico"
-
-' -------------------------------------------------------------------
-' 10. SEGURIDAD
-' -------------------------------------------------------------------
+' --- 9. SEGURIDAD Y OTROS ---
 Public Const MAX_INTENTOS       As Integer = 3
 Public Const MIN_LONG_CLAVE     As Integer = 8
 Public Const SALT_FIJO          As String = "SIS-MED-2026-VZLA"
 Public Const CLAVE_INICIAL      As String = "Admin2026!"
-
-' -------------------------------------------------------------------
-' 11. RUTAS
-' -------------------------------------------------------------------
 Public Const CARPETA_RESPALDO   As String = "C:\SistemaMedico\Respaldos\"
 Public Const CARPETA_EXPORT     As String = "C:\SistemaMedico\Exportaciones\"
 
-' -------------------------------------------------------------------
-' 12. FORMATOS
-' -------------------------------------------------------------------
+' --- 10. FORMATOS Y LÍMITES ---
 Public Const FORMATO_FECHA      As String = "yyyy-mm-dd"
 Public Const FORMATO_HORA       As String = "hh:mm:ss"
 Public Const FORMATO_DATETIME   As String = "yyyy-mm-dd hh:mm:ss"
 Public Const FORMATO_FECHA_DMA  As String = "dd/mm/yyyy"
-
-' -------------------------------------------------------------------
-' 13. LÍMITES
-' -------------------------------------------------------------------
 Public Const EDAD_MINIMA        As Integer = 0
 Public Const EDAD_MAXIMA        As Integer = 120
 Public Const ANIO_MINIMO        As Integer = 2020
 Public Const ANIO_MAXIMO        As Integer = 2100
 
-' -------------------------------------------------------------------
-' 14. COLORES
-' -------------------------------------------------------------------
+' --- 11. COLORES Y MENSAJES ---
 Public Const COLOR_PRIMARIO     As Long = 7882008
 Public Const COLOR_SECUNDARIO   As Long = 15194304
 Public Const COLOR_EXITO        As Long = 5296274
@@ -154,23 +109,16 @@ Public Const COLOR_PELIGRO      As Long = 255
 Public Const COLOR_ADVERTENCIA  As Long = 65535
 Public Const COLOR_TEXTO_CLARO  As Long = 16777215
 Public Const COLOR_FONDO_GRIS   As Long = 15921906
-
-' -------------------------------------------------------------------
-' 15. MENSAJES ESTÁNDAR
-' -------------------------------------------------------------------
-Public Const MSG_SIN_SELECCION  As String = "Debe seleccionar un registro de la lista."
-Public Const MSG_CONFIRMAR_DEL  As String = "¿Está seguro de eliminar el registro seleccionado?"
+Public Const MSG_SIN_SELECCION  As String = "Debe seleccionar un registro."
+Public Const MSG_CONFIRMAR_DEL  As String = "¿Está seguro de eliminar el registro?"
 Public Const MSG_GUARDADO_OK    As String = "Registro guardado correctamente."
 Public Const MSG_ACTUALIZADO_OK As String = "Registro actualizado correctamente."
 Public Const MSG_ELIMINADO_OK   As String = "Registro eliminado correctamente."
-Public Const MSG_SIN_RESULTADOS As String = "No se encontraron registros con ese criterio."
+Public Const MSG_SIN_RESULTADOS As String = "No se encontraron registros."
 Public Const MSG_SIN_PERMISO    As String = "No tiene permisos para realizar esta acción."
 Public Const MSG_CAMPOS_VACIOS  As String = "Los campos obligatorios deben estar completos."
 
-' -------------------------------------------------------------------
-' 16. FUNCIONES UTILITARIAS
-' -------------------------------------------------------------------
-
+' --- 12. FUNCIONES UTILITARIAS ---
 Public Function ExisteHoja(ByVal nombre As String) As Boolean
     Dim ws As Worksheet
     On Error Resume Next
@@ -217,22 +165,19 @@ Public Sub CerrarSesion()
     gSesionActiva = False
 End Sub
 
-Public Sub RangoMes(ByVal anio As Integer, ByVal mes As Integer, _
-                    ByRef fIni As Date, ByRef fFin As Date)
+Public Sub RangoMes(ByVal anio As Integer, ByVal mes As Integer, ByRef fIni As Date, ByRef fFin As Date)
     fIni = DateSerial(anio, mes, 1)
     fFin = DateSerial(anio, mes + 1, 0)
 End Sub
 
-Public Sub RangoTrimestre(ByVal anio As Integer, ByVal trimestre As Integer, _
-                          ByRef fIni As Date, ByRef fFin As Date)
+Public Sub RangoTrimestre(ByVal anio As Integer, ByVal trimestre As Integer, ByRef fIni As Date, ByRef fFin As Date)
     Dim mesIni As Integer
     mesIni = ((trimestre - 1) * 3) + 1
     fIni = DateSerial(anio, mesIni, 1)
     fFin = DateSerial(anio, mesIni + 3, 0)
 End Sub
 
-Public Sub RangoSemestre(ByVal anio As Integer, ByVal semestre As Integer, _
-                         ByRef fIni As Date, ByRef fFin As Date)
+Public Sub RangoSemestre(ByVal anio As Integer, ByVal semestre As Integer, ByRef fIni As Date, ByRef fFin As Date)
     If semestre = 1 Then
         fIni = DateSerial(anio, 1, 1)
         fFin = DateSerial(anio, 6, 30)
@@ -242,42 +187,33 @@ Public Sub RangoSemestre(ByVal anio As Integer, ByVal semestre As Integer, _
     End If
 End Sub
 
-' -------------------------------------------------------------------
-' 17. NOMBRE DINÁMICO DE LA HOJA DE TRABAJO
-' -------------------------------------------------------------------
-
-' -------------------------------------------------------------------
-' Devuelve el nombre de la hoja de trabajo (copia CRUD).
-' Formato: "CRUD Datos desde dd/mm/yyyy hasta dd/mm/yyyy"
-' -------------------------------------------------------------------
+' --- 13. NOMBRE DINÁMICO ---
 Public Function NombreHojaTrabajo() As String
-    Dim fDesde As Date
+    ' Usa la fecha actual para el nombre de la copia
     Dim fHasta As Date
     fHasta = Date
+    
+    ' Intenta obtener la fecha más antigua de la hoja original
+    Dim fDesde As Date
     fDesde = Date
     
     If ExisteHoja(HOJA_DATOS_ORIGINAL) Then
         Dim ws As Worksheet
         Set ws = ThisWorkbook.Sheets(HOJA_DATOS_ORIGINAL)
         Dim lastRow As Long
-        lastRow = ws.Cells(ws.Rows.count, COL_FECHA).End(xlUp).Row
+        lastRow = ws.Cells(ws.Rows.count, COL_CEDULA).End(xlUp).Row
         
         Dim i As Long
-        Dim hayFecha As Boolean: hayFecha = False
         For i = 2 To lastRow
             If IsDate(ws.Cells(i, COL_FECHA).Value) Then
-                If Not hayFecha Then
-                    fDesde = CDate(ws.Cells(i, COL_FECHA).Value)
-                    hayFecha = True
-                ElseIf CDate(ws.Cells(i, COL_FECHA).Value) < fDesde Then
-                    fDesde = CDate(ws.Cells(i, COL_FECHA).Value)
-                End If
+                fDesde = CDate(ws.Cells(i, COL_FECHA).Value)
+                Exit For
             End If
         Next i
     End If
     
     NombreHojaTrabajo = HOJA_DATOS_PREFIJO & _
-                        Format(fDesde, FORMATO_FECHA_DMA) & " hasta " & _
-                        Format(fHasta, FORMATO_FECHA_DMA)
+                        Format(fDesde, "dd/mm/yyyy") & " hasta " & _
+                        Format(fHasta, "dd/mm/yyyy")
 End Function
 
